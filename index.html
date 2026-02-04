@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculadora estequiométrica inteligente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <div class="app-inner">
+
+      <header class="header">
+        <div class="title-block">
+          <h1>Calculadora estequiométrica inteligente</h1>
+        </div>
+      </header>
+
+      <main class="grid">
+
+        <!-- SECCIÓN 1: REACCIÓN -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">1 · Definir reacción</h2>
+          </div>
+
+          <p class="hint" style="margin-top:-4px; margin-bottom:12px;">
+            Introduce reactivos y productos. Puedes añadir tantas sustancias como quieras.
+          </p>
+
+          <div class="reaction-grid">
+            <div class="reaction-column">
+              <h3 class="column-title">Reactivos</h3>
+
+              <div id="reactants-list" class="list-stack">
+                <!-- Filas iniciales -->
+                <div class="rowline">
+                  <input class="species-input" data-side="reactivo" type="text" placeholder="Ej: C2H6" />
+                  <button type="button" class="icon-btn remove-species" title="Quitar" aria-label="Quitar">🗑️</button>
+                </div>
+                <div class="rowline">
+                  <input class="species-input" data-side="reactivo" type="text" placeholder="Ej: O2" />
+                  <button type="button" class="icon-btn remove-species" title="Quitar" aria-label="Quitar">🗑️</button>
+                </div>
+              </div>
+
+              <button id="add-reactant" type="button" class="btn-tertiary small-btn">+ Añadir reactivo</button>
+            </div>
+
+            <div class="reaction-arrow">→</div>
+
+            <div class="reaction-column">
+              <h3 class="column-title">Productos</h3>
+
+              <div id="products-list" class="list-stack">
+                <!-- Filas iniciales -->
+                <div class="rowline">
+                  <input class="species-input" data-side="producto" type="text" placeholder="Ej: CO2" />
+                  <button type="button" class="icon-btn remove-species" title="Quitar" aria-label="Quitar">🗑️</button>
+                </div>
+                <div class="rowline">
+                  <input class="species-input" data-side="producto" type="text" placeholder="Ej: H2O" />
+                  <button type="button" class="icon-btn remove-species" title="Quitar" aria-label="Quitar">🗑️</button>
+                </div>
+              </div>
+
+              <button id="add-product" type="button" class="btn-tertiary small-btn">+ Añadir producto</button>
+            </div>
+          </div>
+
+          <button id="btn-balance" class="btn-primary">
+            Ajustar reacción y calcular masas molares
+          </button>
+
+          <p id="balance-error" class="error-msg"></p>
+
+          <div id="balanced-info" class="balanced-info hidden">
+            <div class="balanced-equation">
+              <span class="section-label">Ecuación ajustada:</span>
+              <span id="balanced-equation-text"></span>
+            </div>
+
+            <div class="molar-masses">
+              <span class="section-label">Masas molares:</span>
+              <ul id="molar-mass-list"></ul>
+            </div>
+          </div>
+
+          <button id="reset-reaction" class="btn-reset">Reiniciar</button>
+        </section>
+
+        <!-- SECCIÓN 2: CÁLCULOS -->
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">2 · Cálculo (masa / moles / volumen)</h2>
+          </div>
+
+          <p class="hint">
+            Elige sustancia conocida y cómo la introduces. Luego elige qué quieres calcular.
+          </p>
+
+          <div class="field">
+            <span class="field-label">Sustancia conocida</span>
+            <select id="known-species">
+              <option value="">— Selecciona —</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <span class="field-label">Tipo de dato conocido</span>
+            <select id="known-type">
+              <option value="mass">Masa (g)</option>
+              <option value="moles">Moles (mol)</option>
+              <option value="volume">Volumen</option>
+            </select>
+          </div>
+
+          <div id="known-mass-block" class="subblock">
+            <div class="field">
+              <span class="field-label">Masa conocida (g)</span>
+              <input id="known-mass" type="number" min="0" step="any" placeholder="Ej: 5" />
+            </div>
+          </div>
+
+          <div id="known-moles-block" class="subblock hidden">
+            <div class="field">
+              <span class="field-label">Moles conocidos (mol)</span>
+              <input id="known-moles" type="number" min="0" step="any" placeholder="Ej: 0.25" />
+            </div>
+          </div>
+
+          <div id="known-volume-block" class="subblock hidden">
+            <div class="field">
+              <span class="field-label">El volumen corresponde a</span>
+              <select id="known-volume-kind">
+                <option value="solution">Disolución</option>
+                <option value="gas">Gas ideal</option>
+              </select>
+            </div>
+
+            <div id="known-solution-fields" class="mini-grid">
+              <div class="field">
+                <span class="field-label">Volumen (mL)</span>
+                <input id="known-sol-vol-ml" type="number" min="0" step="any" placeholder="Ej: 250" />
+              </div>
+              <div class="field">
+                <span class="field-label">Concentración (mol/L)</span>
+                <input id="known-sol-molarity" type="number" min="0" step="any" placeholder="Ej: 0.50" />
+              </div>
+            </div>
+
+            <div id="known-gas-fields" class="mini-grid hidden">
+              <div class="field">
+                <span class="field-label">Volumen (L)</span>
+                <input id="known-gas-vol-L" type="number" min="0" step="any" placeholder="Ej: 2.5" />
+              </div>
+
+              <div class="field">
+                <span class="field-label">Presión</span>
+                <div class="inline-2">
+                  <input id="known-gas-P" type="number" min="0" step="any" placeholder="Ej: 1" />
+                  <select id="known-gas-Punit">
+                    <option value="atm">atm</option>
+                    <option value="kPa">kPa</option>
+                    <option value="mmHg">mmHg</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="field-label">Temperatura (°C)</span>
+                <input id="known-gas-Tc" type="number" step="any" placeholder="Ej: 25" />
+              </div>
+            </div>
+          </div>
+
+          <hr class="sep" />
+
+          <div class="field">
+            <span class="field-label">Sustancia a calcular</span>
+            <select id="target-species">
+              <option value="">— Selecciona —</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <span class="field-label">Qué quieres calcular</span>
+            <select id="target-type">
+              <option value="mass">Masa (g)</option>
+              <option value="moles">Moles (mol)</option>
+              <option value="volume">Volumen</option>
+            </select>
+          </div>
+
+          <div id="target-volume-block" class="subblock hidden">
+            <div class="field">
+              <span class="field-label">El volumen corresponde a</span>
+              <select id="target-volume-kind">
+                <option value="solution">Disolución</option>
+                <option value="gas">Gas ideal</option>
+              </select>
+            </div>
+
+            <div id="target-solution-fields" class="mini-grid">
+              <div class="field">
+                <span class="field-label">Concentración objetivo (mol/L)</span>
+                <input id="target-sol-molarity" type="number" min="0" step="any" placeholder="Ej: 0.10" />
+              </div>
+              <div class="field">
+                <span class="field-label">Volumen saldrá en</span>
+                <select id="target-sol-vunit">
+                  <option value="L">L</option>
+                  <option value="mL">mL</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="target-gas-fields" class="mini-grid hidden">
+              <div class="field">
+                <span class="field-label">Presión objetivo</span>
+                <div class="inline-2">
+                  <input id="target-gas-P" type="number" min="0" step="any" placeholder="Ej: 1" />
+                  <select id="target-gas-Punit">
+                    <option value="atm">atm</option>
+                    <option value="kPa">kPa</option>
+                    <option value="mmHg">mmHg</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="field-label">Temperatura objetivo (°C)</span>
+                <input id="target-gas-Tc" type="number" step="any" placeholder="Ej: 25" />
+              </div>
+            </div>
+          </div>
+
+          <button id="btn-calc" class="btn-secondary">Calcular</button>
+
+          <p id="calc-error" class="error-msg"></p>
+
+          <div id="result-box" class="result-box hidden">
+            <p class="result-main">
+              <span class="section-label">Resultado:</span>
+              <span id="result-text"></span>
+            </p>
+          </div>
+
+          <button id="btn-show-conversion" class="btn-tertiary hidden">Mostrar conversión</button>
+
+          <div id="conversion-box" class="result-box hidden">
+            <p class="result-main"><span class="section-label">Conversión completa:</span></p>
+            <p id="conversion-text" class="result-detail mono"></p>
+          </div>
+
+          <button id="reset-mass" class="btn-reset">Reiniciar</button>
+        </section>
+
+      </main>
+
+      <footer class="footer">
+        <span>Autor: Samuel López Melián</span>
+      </footer>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
