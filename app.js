@@ -8,6 +8,25 @@
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ===============================
+  //  Formato español (coma) + parser que acepta coma en inputs
+  // ===============================
+  function fmt(num, decimals) {
+    return Number(num).toLocaleString("es-ES", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  }
+  function toNumber(val) {
+    // Acepta "2,5" o "2.5"
+    if (val === null || val === undefined) return NaN;
+    if (typeof val === "number") return val;
+    const s = String(val).trim().replace(/\s+/g, "").replace(",", ".");
+    const n = Number(s);
+    return n;
+  }
+
   // ===============================
   //  Normalizar subíndices Unicode
   // ===============================
@@ -538,7 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
       molarMassList.innerHTML = "";
       enriched.forEach(s => {
         const li = document.createElement("li");
-        li.textContent = `${s.formula}: ${s.molarMass.toFixed(3)} g/mol`;
+        li.textContent = `${s.formula}: ${fmt(s.molarMass, 3)} g/mol`;
         molarMassList.appendChild(li);
       });
 
@@ -599,43 +618,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (knownType.value === "mass") {
-        const m = Number(knownMassInput.value);
+        const m = toNumber(knownMassInput.value);
         if (!isFinite(m) || m <= 0) throw new Error("Introduce una masa válida.");
 
         nKnown = m / known.molarMass;
 
-        leftPieces.push(`<span class="factor">${termHTML(`${m}`, `g ${known.formula}`)}</span>`);
+        leftPieces.push(`<span class="factor">${termHTML(`${fmt(m, 3)}`, `g ${known.formula}`)}</span>`);
         leftPieces.push(`<span class="times">×</span>`);
         leftPieces.push(
-          fractionHTML(`1`, `mol ${known.formula}`, `${known.molarMass.toFixed(3)}`, `g ${known.formula}`)
+          fractionHTML(`1`, `mol ${known.formula}`, `${fmt(known.molarMass, 3)}`, `g ${known.formula}`)
         );
       } else if (knownType.value === "moles") {
-        const n = Number(knownMolesInput.value);
+        const n = toNumber(knownMolesInput.value);
         if (!isFinite(n) || n <= 0) throw new Error("Introduce moles válidos.");
 
         nKnown = n;
 
-        leftPieces.push(`<span class="factor">${termHTML(`${n}`, `mol ${known.formula}`)}</span>`);
+        leftPieces.push(`<span class="factor">${termHTML(`${fmt(n, 6)}`, `mol ${known.formula}`)}</span>`);
       } else {
         // volumen
         if (knownVolumeKind.value === "solution") {
-          const vml = Number(knownSolVolML.value);
-          const M = Number(knownSolM.value);
+          const vml = toNumber(knownSolVolML.value);
+          const M = toNumber(knownSolM.value);
           if (!isFinite(vml) || vml <= 0) throw new Error("Volumen (mL) inválido.");
           if (!isFinite(M) || M <= 0) throw new Error("Concentración (mol/L) inválida.");
 
           const vL = vml / 1000;
           nKnown = M * vL;
 
-          leftPieces.push(`<span class="factor">${termHTML(`${M}`, `mol/L`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(M, 6)}`, `mol/L`)}</span>`);
           leftPieces.push(`<span class="times">×</span>`);
-          leftPieces.push(`<span class="factor">${termHTML(`${vL}`, `L`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(vL, 6)}`, `L`)}</span>`);
           leftPieces.push(`<span class="times eq">=</span>`);
-          leftPieces.push(`<span class="factor">${termHTML(`${nKnown.toFixed(6)}`, `mol ${known.formula}`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(nKnown, 6)}`, `mol ${known.formula}`)}</span>`);
         } else {
-          const V = Number(knownGasV.value);
-          const Praw = Number(knownGasP.value);
-          const Tc = Number(knownGasTc.value);
+          const V = toNumber(knownGasV.value);
+          const Praw = toNumber(knownGasP.value);
+          const Tc = toNumber(knownGasTc.value);
 
           if (!isFinite(V) || V <= 0) throw new Error("Volumen (L) inválido.");
           if (!isFinite(Praw) || Praw <= 0) throw new Error("Presión inválida.");
@@ -647,16 +666,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
           nKnown = (P_atm * V) / (R * T);
 
-          // Visual simple
-          leftPieces.push(`<span class="factor">${termHTML(`${Praw}`, `${knownGasPunit.value}`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(Praw, 3)}`, `${knownGasPunit.value}`)}</span>`);
           leftPieces.push(`<span class="times">×</span>`);
-          leftPieces.push(`<span class="factor">${termHTML(`${V}`, `L`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(V, 3)}`, `L`)}</span>`);
           leftPieces.push(`<span class="times">÷</span>`);
-          leftPieces.push(`<span class="factor">${termHTML(`${R}`, `L·atm/(mol·K)`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(R, 6)}`, `L·atm/(mol·K)`)}</span>`);
           leftPieces.push(`<span class="times">×</span>`);
-          leftPieces.push(`<span class="factor">${termHTML(`${T.toFixed(2)}`, `K`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(T, 2)}`, `K`)}</span>`);
           leftPieces.push(`<span class="times eq">=</span>`);
-          leftPieces.push(`<span class="factor">${termHTML(`${nKnown.toFixed(6)}`, `mol ${known.formula}`)}</span>`);
+          leftPieces.push(`<span class="factor">${termHTML(`${fmt(nKnown, 6)}`, `mol ${known.formula}`)}</span>`);
         }
       }
     } catch (e) {
@@ -674,32 +692,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (targetType.value === "moles") {
-        resultStr = `${nTarget.toFixed(6)} mol de ${target.formula}`;
-        rightHTML = `<span class="factor result">${termHTML(`${nTarget.toFixed(6)}`, `mol ${target.formula}`)}</span>`;
+        resultStr = `${fmt(nTarget, 6)} mol de ${target.formula}`;
+        rightHTML = `<span class="factor result">${termHTML(`${fmt(nTarget, 6)}`, `mol ${target.formula}`)}</span>`;
       } else if (targetType.value === "mass") {
         const mTarget = nTarget * target.molarMass;
-        resultStr = `${mTarget.toFixed(3)} g de ${target.formula}`;
-        rightHTML = `<span class="factor result">${termHTML(`${mTarget.toFixed(3)}`, `g ${target.formula}`)}</span>`;
+        resultStr = `${fmt(mTarget, 3)} g de ${target.formula}`;
+        rightHTML = `<span class="factor result">${termHTML(`${fmt(mTarget, 3)}`, `g ${target.formula}`)}</span>`;
 
         tailPieces.push(`<span class="times">×</span>`);
         tailPieces.push(
-          fractionHTML(`${target.molarMass.toFixed(3)}`, `g ${target.formula}`, `1`, `mol ${target.formula}`)
+          fractionHTML(`${fmt(target.molarMass, 3)}`, `g ${target.formula}`, `1`, `mol ${target.formula}`)
         );
       } else {
         // volumen objetivo
         if (targetVolumeKind.value === "solution") {
-          const M = Number(targetSolM.value);
+          const M = toNumber(targetSolM.value);
           if (!isFinite(M) || M <= 0) throw new Error("Concentración objetivo inválida.");
 
           const V_L = nTarget / M;
           const unit = targetSolVunit.value;
           const outV = unit === "mL" ? V_L * 1000 : V_L;
 
-          resultStr = `${outV.toFixed(3)} ${unit} de disolución de ${target.formula}`;
-          rightHTML = `<span class="factor result">${termHTML(`${outV.toFixed(3)}`, `${unit}`)}</span>`;
+          resultStr = `${fmt(outV, 3)} ${unit} de disolución de ${target.formula}`;
+          rightHTML = `<span class="factor result">${termHTML(`${fmt(outV, 3)}`, `${unit}`)}</span>`;
         } else {
-          const Praw = Number(targetGasP.value);
-          const Tc = Number(targetGasTc.value);
+          const Praw = toNumber(targetGasP.value);
+          const Tc = toNumber(targetGasTc.value);
 
           if (!isFinite(Praw) || Praw <= 0) throw new Error("Presión objetivo inválida.");
           if (!isFinite(Tc)) throw new Error("Temperatura objetivo inválida.");
@@ -709,8 +727,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if (T <= 0) throw new Error("Temperatura objetivo inválida.");
 
           const V_L = (nTarget * R * T) / P_atm;
-          resultStr = `${V_L.toFixed(3)} L de ${target.formula} (gas ideal)`;
-          rightHTML = `<span class="factor result">${termHTML(`${V_L.toFixed(3)}`, `L`)}</span>`;
+          resultStr = `${fmt(V_L, 3)} L de ${target.formula} (gas ideal)`;
+          rightHTML = `<span class="factor result">${termHTML(`${fmt(V_L, 3)}`, `L`)}</span>`;
         }
       }
     } catch (e) {
@@ -765,21 +783,10 @@ document.addEventListener("DOMContentLoaded", () => {
   //  Reinicio tarjeta 1
   // ===============================
   resetReaction.addEventListener("click", () => {
-    // Borra inputs de reacción, pero deja 2 filas por lado (limpias)
     function resetList(listEl, side) {
-      const rows = Array.from(listEl.querySelectorAll(".rowline"));
-      // deja 2 filas
-      while (listEl.querySelectorAll(".rowline").length > 2) {
-        listEl.lastElementChild.remove();
-      }
-      // si había 1, añade hasta 2
-      while (listEl.querySelectorAll(".rowline").length < 2) {
-        const row = createRow(side);
-        listEl.appendChild(row);
-      }
-      // limpia valores
+      while (listEl.querySelectorAll(".rowline").length > 2) listEl.lastElementChild.remove();
+      while (listEl.querySelectorAll(".rowline").length < 2) listEl.appendChild(createRow(side));
       listEl.querySelectorAll("input.species-input").forEach(i => (i.value = ""));
-      // asegura handlers en los botones
       listEl.querySelectorAll(".remove-species").forEach(btn => {
         if (!btn.dataset.bound) {
           attachRemoveHandler(btn);
@@ -788,8 +795,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Helpers locales (usan las funciones ya definidas arriba)
-    // (Reutilizamos createRow/attachRemoveHandler)
     resetList(reactantsList, "reactivo");
     resetList(productsList, "producto");
 
@@ -837,7 +842,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ===============================
-  //  (IMPORTANTE) asegurar que los botones iniciales ya tengan handler (por si el HTML venía sin)
+  //  (IMPORTANTE) asegurar handlers
   // ===============================
   document.querySelectorAll(".remove-species").forEach(btn => {
     if (!btn.dataset.bound) {
