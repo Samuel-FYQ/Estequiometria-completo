@@ -14,8 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===============================
   function fmt(num, decimals) {
     return Number(num).toLocaleString("es-ES", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
+      useGrouping: false,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
     });
   }
   function toNumber(val) {
